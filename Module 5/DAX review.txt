@@ -1,0 +1,26 @@
+TotRevenue:=sum([Revenue])
+OurSales:=CALCULATE([TotRevenue],Manufacturer[Manufacturer]="VanArsdel")
+SalesAllvendors:=CALCULATE([TotRevenue],all(Manufacturer))
+LastYearRevenue:=CALCULATE([TotRevenue],SAMEPERIODLASTYEAR('Calendar'[Date]))
+GrowthFromLastYear:=divide(([TotRevenue]-[LastYearRevenue]),[LastYearRevenue])
+OurShare:=divide([OurSales],[SalesAllvendors])
+ShowShare:=if(HASONEVALUE(ShowShare[ShowMArketShare]),if(values(ShowShare[ShowMArketShare])="As %",[OurShare],[TotRevenue]),blank())
+New Locations:=COUNTROWS (
+    FILTER (
+        ADDCOLUMNS (
+            VALUES ( Sales[LocationKey]), 
+            "PreviousSales", 
+                CALCULATE (
+                    COUNTROWS (Sales),
+                    FILTER (
+                        ALL (Calendar),
+                        Calendar[Date] < MIN (Calendar[Date] )
+                    )
+                )
+        ),
+        [PreviousSales]=0
+    )
+)
+TotalLocations:=DISTINCTCOUNT(Sales[LocationKey])
+LastYearShare:=CALCULATE([OurShare],SAMEPERIODLASTYEAR('Calendar'[Date]))
+YoYShare:=if(ISBLANK([LastYearShare]),blank(),100*([OurShare]-[LastYearShare]))
